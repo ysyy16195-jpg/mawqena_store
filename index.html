@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mawqena Store - متجر موقعنا</title>
+    
+    <!-- استدعاء وحدات فايربيس الحديثة (ES Modules) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.analytics.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.auth.js";
+
+        // إعدادات مشروعك على Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCuepVl5cNmUyGZ3nwXmhBrgJPinjCMkhU",
+            authDomain: "moghnastore.firebaseapp.com",
+            projectId: "moghnastore",
+            storageBucket: "moghnastore.firebasestorage.app",
+            messagingSenderId: "210887018953",
+            appId: "1:210887018953:web:ce2110ac96ff36fb180018",
+            measurementId: "G-QGCWQL6WYB"
+        };
+
+        // تهيئة Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1554315685558226967/_hFztlQyNqNQlixQxvZcQZQmwNLfD83KfRGixGzdAPnvCo5imo6taCzmIigsrSnAAkHJ";
+        
+        let admins = JSON.parse(localStorage.getItem("store_admins")) || [
+            { email: "ysysbah26@gmail.com", role: "Owner" }
+        ];
+
+        let services = JSON.parse(localStorage.getItem("store_services")) || [
+            { name: "برمجة واجهة موقع إلكتروني", price: "10$" },
+            { name: "إعداد وتهيئة سيرفر دسكورد", price: "5$" }
+        ];
+
+        let stats = JSON.parse(localStorage.getItem("store_stats")) || { visitors: 1, orders: 3 };
+        let currentCartItem = "";
+
+        // ربط الدوال بالنافذة العامة لتاريخ العمل مع الأزرار
+        window.loginWithGoogle = function() {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    console.log("تم تسجيل الدخول بنجاح:", result.user);
+                })
+                .catch((error) => {
+                    alert("خطأ في تسجيل الدخول: " + error.message);
+                });
+        };
+
+        window.logoutUser = function() {
+            signOut(auth).then(() => {
+                switchTab('home', document.querySelectorAll('.nav-btn')[0]);
+            }).catch((error) => {
+                console.error("خطأ أثناء تسجيل الخروج", error);
+            });
+        };
+
+        // مراقبة حالة المستخدم وتحديث الواجهة والصلاحيات
+        onAuthStateChanged(auth, (user) => {
+            const authSectionBox = document.getElementById("authSectionBox");
+            const userInfoBox = document.getElementById("userInfoBox");
+            const userEmailText = document.getElementById("user-email");
+            const adminPanelAccessContainer = document.getElementById("adminPanelAccessContainer");
+            const navAdminBtn = document.getElementById("navAdminBtn");
+
+            if (user) {
+                authSectionBox.style.display = "none";
+                userInfoBox.style.display = "block";
+                userEmailText.textContent = user.email;
+
+                const foundAdmin = admins.find(a => a.email.toLowerCase() === user.email.toLowerCase());
+                
+                if (foundAdmin) {
+                    adminPanelAccessContainer.style.display = "block";
+                    navAdminBtn.style.display = "flex";
+                    
+                    document.getElementById("currentEmailDisplay").innerText = user.email;
+                    document.getElementById("currentRoleDisplay").innerText = foundAdmin.role === "Owner" ? "المالك الرئيسي (Owner)" : foundAdmin.role;
+
+                    if (foundAdmin.role === "Owner") {
+                        document.getElementById("ownerOnlyBox").style.display = "block";
+                    } else {
+                        document.getElementById("ownerOnlyBox").style.display = "none";
+                    }
+                } else {
+                    adminPanelAccessContainer.style.display = "none";
+                    navAdminBtn.style.display = "none";
+                }
+            } else {
+                authSectionBox.style.display = "block";
+                userInfoBox.style.display = "none";
+                userEmailText.textContent = "لم يتم تسجيل الدخول";
+                adminPanelAccessContainer.style.display = "none";
+                navAdminBtn.style.display = "none";
+            }
+        });
+
+        // تشغيل الوظائف الأساسية عند تحميل الصفحة
+        window.onload = function() {
+            if (!sessionStorage.getItem("visited")) {
+                stats.visitors++;
+                localStorage.setItem("store_stats", JSON.stringify(stats));
+                sessionStorage.setItem("visited", "true");
+            }
+            renderClientServices();
+            renderAdminServices();
+            renderAdmins();
+            renderLogs();
+            updateStats();
+        }
+
+        // جعل الدورات متاحة عالمياً للواجهة
+        window.switchTab = function(tabId, element) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            if (element) {
+                element.classList.add('active');
+            }
+            window.scrollTo(0, 0);
+        }
+
+        window.renderClientServices = function() {
+            const list = document.getElementById("clientServicesList");
+            list.innerHTML = "";
+            if (services.length === 0) {
+                list.innerHTML = `<p style="color: #666; font-size: 13px;">لا توجد خدمات متاحة حالياً.</p>`;
+                return;
+            }
+            services.forEach(s => {
+                list.innerHTML += `
+                    <div class="service-card">
+                        <div>
+                            <div class="service-title">${s.name}</div>
+                            <div class="service-price">السعر: ${s.price}</div>
+                        </div>
+                        <button onclick="addToCart('${s.name} (${s.price})')">اطلب الخدمة</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.addToCart = function(serviceName) {
+            currentCartItem = serviceName;
+            document.getElementById("cartDisplay").innerHTML = `• المنتج المختار:<br><strong style="color:#fff;">${serviceName}</strong>`;
+            document.getElementById("checkoutArea").style.display = "block";
+            alert("تمت إضافة المنتج إلى السلة!");
+            switchTab('cart', document.querySelectorAll('.nav-btn')[2]);
+        }
+
+        window.submitOrder = function() {
+            const contact = document.getElementById("clientContact").value.trim();
+            const note = document.getElementById("orderNote").value.trim();
+            const currentUser = auth.currentUser;
+
+            if (!contact) {
+                alert("يرجى كتابة وسيلة التواصل (إيميل أو دسكورد)!");
+                return;
+            }
+
+            const emailInfo = currentUser ? currentUser.email : "زائر غير مسجل";
+
+            const payload = {
+                content: `🚨 **طلب جديد في Mawqena Store!**\n\n🛒 **الخدمة:** ${currentCartItem}\n👤 **حساب جوجل:** \`${emailInfo}\`\n📞 **للتواصل:** \`${contact}\`\n📝 **الملاحظات:** ${note || "لا توجد"}\n📅 **الوقت:** ${new Date().toLocaleString('ar-IQ')}`
+            };
+
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if(res.ok) {
+                    alert("تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً.");
+                    stats.orders++;
+                    localStorage.setItem("store_stats", JSON.stringify(stats));
+                    updateStats();
+                    currentCartItem = "";
+                    document.getElementById("cartDisplay").innerText = "لا يوجد منتجات في سلة المشتريات الخاصة بك";
+                    document.getElementById("checkoutArea").style.display = "none";
+                    document.getElementById("clientContact").value = "";
+                    document.getElementById("orderNote").value = "";
+                } else {
+                    alert("حدث خطأ أثناء الإرسال.");
+                }
+            })
+            .catch(() => alert("خطأ في الاتصال بالشبكة."));
+        }
+
+        window.addService = function() {
+            const name = document.getElementById("serviceNameInput").value.trim();
+            const price = document.getElementById("servicePriceInput").value.trim();
+            const currentUser = auth.currentUser;
+
+            if (!name || !price) {
+                alert("يرجى إدخال اسم الخدمة والسعر!");
+                return;
+            }
+
+            services.push({ name, price });
+            localStorage.setItem("store_services", JSON.stringify(services));
+            
+            document.getElementById("serviceNameInput").value = "";
+            document.getElementById("servicePriceInput").value = "";
+            
+            renderClientServices();
+            renderAdminServices();
+            updateStats();
+            
+            const email = currentUser ? currentUser.email : "مجهول";
+            addLog(email, `أضاف خدمة جديدة: ${name} (${price})`);
+            alert("تمت إضافة الخدمة بنجاح!");
+        }
+
+        window.deleteService = function(index) {
+            const currentUser = auth.currentUser;
+            const currentAdmin = admins.find(a => a.email.toLowerCase() === (currentUser ? currentUser.email.toLowerCase() : ""));
+            
+            if (currentAdmin && currentAdmin.role === "Moderator") {
+                alert("ليس لديك صلاحية لحذف الخدمات (رتبتك مراقب).");
+                return;
+            }
+
+            const deleted = services.splice(index, 1);
+            localStorage.setItem("store_services", JSON.stringify(services));
+            
+            renderClientServices();
+            renderAdminServices();
+            updateStats();
+            
+            addLog(currentUser ? currentUser.email : "مجهول", `حذف الخدمة: ${deleted[0].name}`);
+        }
+
+        window.renderAdminServices = function() {
+            const list = document.getElementById("adminServicesList");
+            list.innerHTML = "";
+            if (services.length === 0) {
+                list.innerHTML = `<p style="color: #666; font-size: 13px;">لا توجد خدمات حالياً.</p>`;
+                return;
+            }
+            services.forEach((s, index) => {
+                list.innerHTML += `
+                    <div class="item-row">
+                        <span>${s.name} - <b style="color:#fff;">${s.price}</b></span>
+                        <button style="padding: 4px 10px; font-size: 12px; border-color: #ff4444; color: #ff4444;" onclick="deleteService(${index})">حذف</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.addNewAdmin = function() {
+            const currentUser = auth.currentUser;
+            const currentAdmin = admins.find(a => a.email.toLowerCase() === (currentUser ? currentUser.email.toLowerCase() : ""));
+            
+            if (!currentAdmin || currentAdmin.role !== "Owner") {
+                alert("فقط المالك الأساسي (Owner) يمكنه إضافة أدمنية جدد!");
+                return;
+            }
+
+            const newEmail = document.getElementById("newAdminEmail").value.trim().toLowerCase();
+            const role = document.getElementById("newAdminRole").value;
+
+            if (!newEmail || !newEmail.includes("@")) {
+                alert("أدخل بريد إلكتروني صحيح!");
+                return;
+            }
+
+            if (admins.some(a => a.email.toLowerCase() === newEmail)) {
+                alert("هذا البريد مسجل مسبقاً في قائمة الأدمنية!");
+                return;
+            }
+
+            admins.push({ email: newEmail, role: role });
+            localStorage.setItem("store_admins", JSON.stringify(admins));
+            document.getElementById("newAdminEmail").value = "";
+            
+            renderAdmins();
+            updateStats();
+            addLog(currentUser.email, `أضاف أدمن جديد: ${newEmail} برتبة (${role})`);
+            alert(`تمت إضافة الإيميل برتبة (${role}) بنجاح!`);
+        }
+
+        window.removeAdmin = function(index) {
+            const currentUser = auth.currentUser;
+            const currentAdmin = admins.find(a => a.email.toLowerCase() === (currentUser ? currentUser.email.toLowerCase() : ""));
+            
+            if (!currentAdmin || currentAdmin.role !== "Owner") {
+                alert("فقط المالك يمكنه حذف الأدمنية!");
+                return;
+            }
+
+            if (admins[index].role === "Owner") {
+                alert("لا يمكن حذف المالك الرئيسي للنظام!");
+                return;
+            }
+
+            const removed = admins.splice(index, 1);
+            localStorage.setItem("store_admins", JSON.stringify(admins));
+            
+            renderAdmins();
+            updateStats();
+            addLog(currentUser.email, `حذف الأدمن: ${removed[0].email}`);
+        }
+
+        window.renderAdmins = function() {
+            const list = document.getElementById("adminsList");
+            list.innerHTML = "";
+            admins.forEach((a, index) => {
+                let badgeColor = a.role === "Owner" ? "#fbbf24" : (a.role === "Admin" ? "#38bdf8" : "#a855f7");
+                list.innerHTML += `
+                    <div class="item-row">
+                        <div>
+                            <span style="color: #ccc; font-family: monospace; display:block;">${a.email}</span>
+                            <span style="font-size: 11px; color: ${badgeColor}; font-weight: bold;">[${a.role}]</span>
+                        </div>
+                        ${a.role !== "Owner" ? `<button style="padding: 4px 10px; font-size: 12px; border-color: #ff4444; color: #ff4444;" onclick="removeAdmin(${index})">حذف</button>` : '<span style="font-size:11px; color:#fbbf24;">المالك</span>'}
+                    </div>
+                `;
+            });
+        }
+
+        window.updateStats = function() {
+            document.getElementById("statVisitors").innerText = stats.visitors;
+            document.getElementById("statOrders").innerText = stats.orders;
+            document.getElementById("statServices").innerText = services.length;
+            document.getElementById("statAdmins").innerText = admins.length;
+        }
+
+        window.addLog = function(email, action) {
+            let logs = JSON.parse(localStorage.getItem("admin_logs")) || [];
+            const timeTag = new Date().toLocaleTimeString('ar-IQ');
+            logs.unshift(`[${timeTag}] (${email}): ${action}`);
+            if (logs.length > 50) logs.pop();
+            localStorage.setItem("admin_logs", JSON.stringify(logs));
+            renderLogs();
+        }
+
+        window.renderLogs = function() {
+            const container = document.getElementById("logsContainer");
+            let logs = JSON.parse(localStorage.getItem("admin_logs")) || [];
+            container.innerHTML = logs.join("<br>") || "لا توجد نشاطات مسجلة بعد.";
+        }
+
+        window.clearLogs = function() {
+            const currentUser = auth.currentUser;
+            const currentAdmin = admins.find(a => a.email.toLowerCase() === (currentUser ? currentUser.email.toLowerCase() : ""));
+            
+            if (!currentAdmin || currentAdmin.role !== "Owner") {
+                alert("مسح السجل متاح للمالك فقط!");
+                return;
+            }
+            localStorage.removeItem("admin_logs");
+            renderLogs();
+            addLog(currentUser.email, `قام بمسح سجل النشاطات`);
+        }
+    </script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #000000; 
+            color: #ffffff; 
+            margin: 0; 
+            padding: 0; 
+            text-align: right; 
+            padding-bottom: 90px; 
+        }
+        
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+
+        .store-header {
+            text-align: center;
+            border-bottom: 1px solid #222;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .store-logo-text {
+            font-size: 26px;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 1px;
+            margin: 0 0 5px 0;
+        }
+        .store-logo-text span {
+            color: #38bdf8;
+        }
+        .store-subtext {
+            font-size: 11px;
+            color: #888;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+
+        h2 { font-size: 20px; margin-top: 0; color: #ffffff; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        p { font-size: 14px; color: #888; }
+
+        .hero-box, .section-box {
+            background: #000000;
+            border: 1px solid #222;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .hero-title { font-size: 22px; font-weight: bold; margin-bottom: 10px; color: #fff; }
+        
+        .service-card {
+            background: #000000;
+            border: 1px solid #222;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .service-title { font-size: 15px; font-weight: bold; color: #fff; }
+        .service-price { font-size: 13px; color: #aaa; margin-top: 4px; }
+
+        button { 
+            padding: 10px 16px; 
+            border: 1px solid #444; 
+            border-radius: 6px; 
+            font-size: 14px; 
+            cursor: pointer; 
+            background: #000000; 
+            color: #ffffff; 
+            font-weight: bold; 
+            transition: 0.2s; 
+        }
+        button:hover { border-color: #ffffff; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #000000;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus { border-color: #777; }
+        select option { background: #000; color: #fff; }
+
+        .cart-box {
+            background: #000000;
+            border: 1px dashed #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #888;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            background: #050505;
+            border: 1px solid #222;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+        }
+        .stat-card span { display: block; font-size: 20px; font-weight: bold; color: #fff; margin-top: 5px; }
+
+        .log-box {
+            background: #030303;
+            border: 1px solid #222;
+            padding: 12px;
+            border-radius: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #aaa;
+            font-family: monospace;
+            text-align: left;
+            direction: ltr;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000000;
+            padding: 10px 14px;
+            border: 1px solid #222;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #000000;
+            border-top: 1px solid #222;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 1000;
+        }
+        .nav-btn {
+            background: #000000;
+            border: none;
+            color: #777;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: 0.2s;
+        }
+        .nav-btn span { font-size: 16px; }
+        .nav-btn.active, .nav-btn:hover { color: #ffffff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="store-header">
+            <h1 class="store-logo-text">Mawqena <span>Store</span></h1>
+            <p class="store-subtext">Web Development & Design Agency</p>
+        </div>
+
+        <!-- 1. صفحة الرئيسية -->
+        <div id="home" class="page-section active">
+            <div class="hero-box">
+                <div class="hero-title">أكبر سوق للخدمات الرقمية</div>
+                <p>حلول رقمية متكاملة لإنجاز أعمالك بسهولة وأمان تام.</p>
+            </div>
+            <h2>الخدمات المميزة</h2>
+            <div id="clientServicesList"></div>
+        </div>
+
+        <!-- 2. صفحة البحث -->
+        <div id="search" class="page-section">
+            <h2>بحث عن خدمة</h2>
+            <p>ابحث عن أي خدمة تحتاجها بسرعة:</p>
+            <input type="text" id="searchInput" placeholder="ابحث عن خدمة...">
+            <button style="width: 100%; padding: 12px;" onclick="alert('جاري البحث...')">بحث</button>
+        </div>
+
+        <!-- 3. صفحة السلة -->
+        <div id="cart" class="page-section">
+            <h2>سلة المشتريات</h2>
+            <div class="cart-box" id="cartDisplay">
+                لا يوجد منتجات في سلة المشتريات الخاصة بك
+            </div>
+            <div id="checkoutArea" style="display: none;">
+                <input type="text" id="clientContact" placeholder="معرف دسكورد أو البريد للتواصل...">
+                <textarea id="orderNote" rows="3" placeholder="ملاحظات إضافية على الطلب..."></textarea>
+                <button style="width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #fff;" onclick="submitOrder()">إتمام الطلب</button>
+            </div>
+        </div>
+
+        <!-- 4. صفحة حسابي وتسجيل الدخول -->
+        <div id="account" class="page-section">
+            <h2>حسابي الشخصي</h2>
+            <div class="section-box" id="authSectionBox">
+                <p>سجل دخول بحساب Google الخاص بك لتتمكن من استخدام المتجر:</p>
+                <button style="background: #fff; color: #000; width: 100%;" onclick="loginWithGoogle()">تسجيل الدخول باستخدام Google</button>
+            </div>
+
+            <div class="section-box" id="userInfoBox" style="display: none;">
+                <p>👤 الحساب المسجل: <b id="user-email" style="color: #38bdf8;">لم يتم تسجيل الدخول</b></p>
+                <button style="width: 100%; border-color: #ef4444; color: #ef4444; margin-top: 5px;" onclick="logoutUser()">تسجيل خروج</button>
+            </div>
+
+            <div id="adminPanelAccessContainer" style="display: none; margin-top: 15px;">
+                <button style="width: 100%; background: #111; border-color: #38bdf8; color: #38bdf8;" onclick="switchTab('admin-dashboard', document.querySelectorAll('.nav-btn')[4])">⚙️ الانتقال لوحة التحكم والإدارة</button>
+            </div>
+        </div>
+
+        <!-- 5. لوحة التحكم والإدارة -->
+        <div id="admin-dashboard" class="page-section">
+            <h2>⚡ لوحة تحكم الإدارة</h2>
+            
+            <div class="section-box">
+                <h3>مرحباً بك، <span id="currentEmailDisplay" style="color:#38bdf8;"></span></h3>
+                <p>رتبتك الحالية: <b id="currentRoleDisplay" style="color:#fff;"></b></p>
+                
+                <div class="stats-grid" style="margin-top: 15px;">
+                    <div class="stat-card">إجمالي الزوار<span id="statVisitors">1</span></div>
+                    <div class="stat-card">عدد الطلبات<span id="statOrders">3</span></div>
+                    <div class="stat-card">الخدمات النشطة<span id="statServices">0</span></div>
+                    <div class="stat-card">الأدمنية المسجلين<span id="statAdmins">1</span></div>
+                </div>
+            </div>
+
+            <div id="ownerOnlyBox" style="display: none; background: #080808; border: 1px dashed #444; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h3 style="color: #fbbf24; margin-bottom: 5px;">👑 منطقة المالك الحصرية</h3>
+                <p style="font-size: 13px; color: #888; margin-bottom: 10px;">إدارة الرتب وإضافة الإيميلات مخصصة للمالك الأساسي فقط.</p>
+                <input type="email" id="newAdminEmail" placeholder="البريد الإلكتروني الجديد...">
+                <select id="newAdminRole">
+                    <option value="Admin">مدير (Admin)</option>
+                    <option value="Moderator">مراقب (Moderator)</option>
+                </select>
+                <button style="width: 100%; border-color: #fbbf24; color: #fbbf24;" onclick="addNewAdmin()">إضافة أدمن جديد</button>
+            </div>
+
+            <div class="section-box">
+                <h3>📦 إضافة خدمة جديدة للمتجر</h3>
+                <input type="text" id="serviceNameInput" placeholder="اسم الخدمة...">
+                <input type="text" id="servicePriceInput" placeholder="سعر الخدمة (مثلاً: 10$)...">
+                <button style="width: 100%;" onclick="addService()">إضافة الخدمة رسمياً</button>
+                
+                <div style="margin-top: 15px;">
+                    <p style="color: #fff; margin-bottom: 8px;">قائمة الخدمات وإدارتها:</p>
+                    <div id="adminServicesList"></div>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <h3>🛡️ قائمة الأدمنية والصلاحيات</h3>
+                <div id="adminsList"></div>
+            </div>
+
+            <div class="section-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <p style="margin: 0; color: #fff;">سجل العمليات بالأسماء:</p>
+                    <button style="padding: 4px 8px; font-size: 11px; border-color: #ff4444; color: #ff4444;" onclick="clearLogs()">مسح السجل</button>
+                </div>
+                <div class="log-box" id="logsContainer"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('home', this)">
+            <span>🏠</span> الرئيسية
+        </button>
+        <button class="nav-btn" onclick="switchTab('search', this)">
+            <span>🔍</span> بحث
+        </button>
+        <button class="nav-btn" onclick="switchTab('cart', this)">
+            <span>🛒</span> السلة
+        </button>
+        <button class="nav-btn" onclick="switchTab('account', this)">
+            <span>👤</span> حسابي
+        </button>
+        <button class="nav-btn" id="navAdminBtn" style="display: none; color: #38bdf8;" onclick="switchTab('admin-dashboard', this)">
+            <span>⚙️</span> الإدارة
+        </button>
+    </div>
+
+</body>
+</html>
