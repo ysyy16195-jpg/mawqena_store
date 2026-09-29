@@ -22,7 +22,7 @@
         .store-logo-text span { color: #38bdf8; }
         .store-subtext { font-size: 11px; color: #888; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; }
         
-        /* إخفاء وإظهار الأقسام عبر الفئات البرمجية */
+        /* إخفاء الأقسام افتراضياً */
         .page-section { display: none; padding-top: 10px; }
         .page-section.active { display: block; }
         
@@ -30,8 +30,7 @@
         p { font-size: 14px; color: #888; }
         .hero-box, .section-box { background: #000000; border: 1px solid #222; padding: 20px; border-radius: 12px; margin-bottom: 15px; }
         .hero-title { font-size: 22px; font-weight: bold; margin-bottom: 10px; color: #fff; }
-        .service-card { background: #000000; border: 1px solid #222; padding: 15px; border-r
-            adius: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .service-card { background: #000000; border: 1px solid #222; padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .service-title { font-size: 15px; font-weight: bold; color: #fff; }
         .service-price { font-size: 13px; color: #aaa; margin-top: 4px; }
         button { padding: 10px 16px; border: 1px solid #444; border-radius: 6px; font-size: 14px; cursor: pointer; background: #000000; color: #ffffff; font-weight: bold; transition: 0.2s; }
@@ -45,9 +44,9 @@
         .log-box { background: #030303; border: 1px solid #222; padding: 12px; border-radius: 8px; max-height: 220px; overflow-y: auto; font-size: 12px; color: #aaa; font-family: monospace; text-align: left; direction: ltr; }
         .item-row { display: flex; justify-content: space-between; align-items: center; background: #000000; padding: 10px 14px; border: 1px solid #222; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
         
-        /* شريط التنقل السفلي */
+        /* الشريط السفلي بتصميم الروابط الحقيقية */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000000; border-top: 1px solid #222; display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-btn { background: #000000; border: none; color: #777; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.2s; }
+        .nav-btn { background: #000000; border: none; color: #777; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; transition: 0.2s; }
         .nav-btn span { font-size: 16px; }
         .nav-btn.active, .nav-btn:hover { color: #ffffff; }
     </style>
@@ -61,7 +60,7 @@
         </div>
 
         <!-- الرئيسية -->
-        <div id="home" class="page-section active">
+        <div id="home" class="page-section">
             <div class="hero-box">
                 <div class="hero-title">أكبر سوق للخدمات الرقمية</div>
                 <p>حلول رقمية متكاملة لإنجاز أعمالك بسهولة وأمان تام.</p>
@@ -105,7 +104,9 @@
             </div>
 
             <div id="adminPanelAccessContainer" style="display: none; margin-top: 15px;">
-                <button class="nav-btn-custom" data-target="admin-dashboard" style="width: 100%; padding: 10px; background: #111; border: 1px solid #38bdf8; border-radius: 6px; color: #38bdf8; font-weight: bold; cursor: pointer;">⚙️ الانتقال لوحة التحكم والإدارة</button>
+                <a href="#admin-dashboard" class="nav-link-custom" style="display: block; text-decoration: none;">
+                    <button style="width: 100%; background: #111; border: 1px solid #38bdf8; border-radius: 6px; color: #38bdf8; font-weight: bold; cursor: pointer;">⚙️ الانتقال لوحة التحكم والإدارة</button>
+                </a>
             </div>
         </div>
 
@@ -147,26 +148,26 @@
 
     </div>
 
-    <!-- الشريط السفلي (أزرار نظيفة بدون أي أخطاء أو قيود) -->
+    <!-- الشريط السفلي باستخدام عناصر <a> الحقيقية -->
     <div class="bottom-nav">
-        <button class="nav-btn active" data-target="home">
+        <a href="#home" class="nav-btn" id="btn-home">
             <span>🏠</span> الرئيسية
-        </button>
-        <button class="nav-btn" data-target="search">
+        </a>
+        <a href="#search" class="nav-btn" id="btn-search">
             <span>🔍</span> بحث
-        </button>
-        <button class="nav-btn" data-target="cart">
+        </a>
+        <a href="#cart" class="nav-btn" id="btn-cart">
             <span>🛒</span> السلة
-        </button>
-        <button class="nav-btn" data-target="account">
+        </a>
+        <a href="#account" class="nav-btn" id="btn-account">
             <span>👤</span> حسابي
-        </button>
-        <button class="nav-btn" id="navAdminBtn" style="display: none; color: #38bdf8;" data-target="admin-dashboard">
+        </a>
+        <a href="#admin-dashboard" class="nav-btn" id="btn-admin-dashboard" style="display: none; color: #38bdf8;">
             <span>⚙️</span> الإدارة
-        </button>
+        </a>
     </div>
 
-    <!-- سكريبت التشغيل -->
+    <!-- سكريبت التشغيل المعتمد على مراقبة تغيير مسار الـ Hash -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.analytics.js";
@@ -198,28 +199,29 @@
         let stats = JSON.parse(localStorage.getItem("store_stats")) || { visitors: 1, orders: 3 };
         let currentCartItem = "";
 
-        // نظام التنقل الحديث والآمن (EventListener) لجميع الأزرار التي تستخدم خاصية data-target
-        document.addEventListener("click", function(event) {
-            const btn = event.target.closest("[data-target]");
-            if (!btn) return;
-            
-            const targetId = btn.getAttribute("data-target");
-            
-            // إخفاء كل الأقسام
-            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-            
-            // إظهار القسم المستهدف
-            const targetSec = document.getElementById(targetId);
-            if (targetSec) targetSec.classList.add('active');
-            
-            // تحديث حالة الأزرار في الشريط السفلي إذا كان الزر تابعاً له
-            if (btn.classList.contains('nav-btn')) {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        // دالة تغيير الصفحة بناءً على الـ Hash في الرابط (تضمن الاستجابة بنسبة 100%)
+        function handleRouting() {
+            let hash = window.location.hash.substring(1);
+            if (!hash || !document.getElementById(hash)) {
+                hash = "home";
+                window.location.hash = "home";
             }
-            
+
+            // إخفاء الكل وإظهار القسم المطلوب
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            const targetSec = document.getElementById(hash);
+            if (targetSec) targetSec.classList.add('active');
+
+            // تحديث تصميم الأزرار في الشريط السفلي
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById("btn-" + hash);
+            if (activeBtn) activeBtn.classList.add('active');
+
             window.scrollTo(0, 0);
-        });
+        }
+
+        // مراقبة أي تغيير في الرابط أو الضغط على الأزرار السفلية
+        window.addEventListener("hashchange", handleRouting);
 
         window.loginWithGoogle = function() {
             signInWithPopup(auth, provider).catch((error) => {
@@ -229,11 +231,7 @@
 
         window.logoutUser = function() {
             signOut(auth).then(() => {
-                // العودة للرئيسية عند تسجيل الخروج
-                document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-                document.getElementById('home').classList.add('active');
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                document.querySelector('[data-target="home"]').classList.add('active');
+                window.location.hash = "home";
             });
         };
 
@@ -242,7 +240,7 @@
             const userInfoBox = document.getElementById("userInfoBox");
             const userEmailText = document.getElementById("user-email");
             const adminPanelAccessContainer = document.getElementById("adminPanelAccessContainer");
-            const navAdminBtn = document.getElementById("navAdminBtn");
+            const btnAdmin = document.getElementById("btn-admin-dashboard");
 
             if (user) {
                 authSectionBox.style.display = "none";
@@ -251,21 +249,21 @@
 
                 if (user.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
                     adminPanelAccessContainer.style.display = "block";
-                    navAdminBtn.style.display = "flex";
+                    btnAdmin.style.display = "flex";
                     
                     document.getElementById("currentEmailDisplay").textContent = user.email;
                     document.getElementById("currentRoleDisplay").textContent = "المالك الرئيسي (Owner)";
                     document.getElementById("ownerOnlyBox").style.display = "block";
                 } else {
                     adminPanelAccessContainer.style.display = "none";
-                    navAdminBtn.style.display = "none";
+                    btnAdmin.style.display = "none";
                 }
             } else {
                 authSectionBox.style.display = "block";
                 userInfoBox.style.display = "none";
                 userEmailText.textContent = "لم يتم تسجيل الدخول";
                 adminPanelAccessContainer.style.display = "none";
-                navAdminBtn.style.display = "none";
+                btnAdmin.style.display = "none";
             }
         });
 
@@ -275,6 +273,14 @@
                 localStorage.setItem("store_stats", JSON.stringify(stats));
                 sessionStorage.setItem("visited", "true");
             }
+
+            // إذا لم يكن هناك رابط مخصص، ابدأ بالرئيسية
+            if (!window.location.hash) {
+                window.location.hash = "home";
+            } else {
+                handleRouting();
+            }
+
             renderClientServices();
             renderAdminServices();
             renderLogs();
@@ -320,12 +326,7 @@
             document.getElementById("cartDisplay").innerHTML = `• المنتج المختار:<br><strong style="color:#fff;">${serviceName}</strong>`;
             document.getElementById("checkoutArea").style.display = "block";
             alert("تمت إضافة المنتج إلى السلة!");
-            
-            // الانتقال الفوري لقسم السلة برمجياً
-            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById('cart').classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector('[data-target="cart"]').classList.add('active');
+            window.location.hash = "cart";
         }
 
         window.submitOrder = function() {
