@@ -21,8 +21,11 @@
         .store-logo-text { font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 1px; margin: 0 0 5px 0; }
         .store-logo-text span { color: #38bdf8; }
         .store-subtext { font-size: 11px; color: #888; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; }
-        .page-section { display: none; }
+        
+        /* إخفاء وإظهار الأقسام عبر الفئات البرمجية */
+        .page-section { display: none; padding-top: 10px; }
         .page-section.active { display: block; }
+        
         h2 { font-size: 20px; margin-top: 0; color: #ffffff; border-bottom: 1px solid #222; padding-bottom: 10px; }
         p { font-size: 14px; color: #888; }
         .hero-box, .section-box { background: #000000; border: 1px solid #222; padding: 20px; border-radius: 12px; margin-bottom: 15px; }
@@ -40,6 +43,8 @@
         .stat-card span { display: block; font-size: 18px; font-weight: bold; color: #fff; margin-top: 5px; }
         .log-box { background: #030303; border: 1px solid #222; padding: 12px; border-radius: 8px; max-height: 220px; overflow-y: auto; font-size: 12px; color: #aaa; font-family: monospace; text-align: left; direction: ltr; }
         .item-row { display: flex; justify-content: space-between; align-items: center; background: #000000; padding: 10px 14px; border: 1px solid #222; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+        
+        /* شريط التنقل السفلي */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000000; border-top: 1px solid #222; display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
         .nav-btn { background: #000000; border: none; color: #777; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.2s; }
         .nav-btn span { font-size: 16px; }
@@ -81,7 +86,7 @@
             <div id="checkoutArea" style="display: none;">
                 <input type="text" id="clientContact" placeholder="معرف دسكورد أو البريد للتواصل...">
                 <textarea id="orderNote" rows="3" placeholder="ملاحظات إضافية على الطلب..."></textarea>
-                <button style="width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #fff;" onclick="window.submitOrder()">إتمام الطلب</button>
+                <button style="width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #fff;" onclick="submitOrder()">إتمام الطلب</button>
             </div>
         </div>
 
@@ -90,16 +95,16 @@
             <h2>حسابي الشخصي</h2>
             <div class="section-box" id="authSectionBox">
                 <p>سجل دخول بحساب Google الخاص بك لتتمكن من استخدام المتجر:</p>
-                <button style="background: #fff; color: #000; width: 100%;" onclick="window.loginWithGoogle()">تسجيل الدخول باستخدام Google</button>
+                <button style="background: #fff; color: #000; width: 100%;" onclick="loginWithGoogle()">تسجيل الدخول باستخدام Google</button>
             </div>
 
             <div class="section-box" id="userInfoBox" style="display: none;">
                 <p>👤 الحساب المسجل: <b id="user-email" style="color: #38bdf8;">لم يتم تسجيل الدخول</b></p>
-                <button style="width: 100%; border-color: #ef4444; color: #ef4444; margin-top: 5px;" onclick="window.logoutUser()">تسجيل خروج</button>
+                <button style="width: 100%; border-color: #ef4444; color: #ef4444; margin-top: 5px;" onclick="logoutUser()">تسجيل خروج</button>
             </div>
 
             <div id="adminPanelAccessContainer" style="display: none; margin-top: 15px;">
-                <button style="width: 100%; background: #111; border-color: #38bdf8; color: #38bdf8;" onclick="window.switchTab('admin-dashboard', document.getElementById('navAdminBtn'))">⚙️ الانتقال لوحة التحكم والإدارة</button>
+                <button class="nav-btn-custom" data-target="admin-dashboard" style="width: 100%; padding: 10px; background: #111; border: 1px solid #38bdf8; border-radius: 6px; color: #38bdf8; font-weight: bold; cursor: pointer;">⚙️ الانتقال لوحة التحكم والإدارة</button>
             </div>
         </div>
 
@@ -122,7 +127,7 @@
                 <h3 style="color: #fbbf24; margin-bottom: 5px;">📦 إضافة خدمة جديدة للمتجر</h3>
                 <input type="text" id="serviceNameInput" placeholder="اسم الخدمة...">
                 <input type="text" id="servicePriceInput" placeholder="سعر الخدمة (مثلاً: 10$)...">
-                <button style="width: 100%; border-color: #fbbf24; color: #fbbf24;" onclick="window.addService()">إضافة الخدمة رسمياً</button>
+                <button style="width: 100%; border-color: #fbbf24; color: #fbbf24;" onclick="addService()">إضافة الخدمة رسمياً</button>
                 
                 <div style="margin-top: 15px;">
                     <p style="color: #fff; margin-bottom: 8px;">قائمة الخدمات وإدارتها:</p>
@@ -133,7 +138,7 @@
             <div class="section-box">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <p style="margin: 0; color: #fff;">سجل النشاطات:</p>
-                    <button style="padding: 4px 8px; font-size: 11px; border-color: #ff4444; color: #ff4444;" onclick="window.clearLogs()">مسح السجل</button>
+                    <button style="padding: 4px 8px; font-size: 11px; border-color: #ff4444; color: #ff4444;" onclick="clearLogs()">مسح السجل</button>
                 </div>
                 <div class="log-box" id="logsContainer"></div>
             </div>
@@ -141,26 +146,26 @@
 
     </div>
 
-    <!-- الشريط السفلي (تم تصحيح الأزرار وربطها برمجياً) -->
+    <!-- الشريط السفلي (أزرار نظيفة بدون أي أخطاء أو قيود) -->
     <div class="bottom-nav">
-        <button class="nav-btn active" id="navHomeBtn" onclick="window.switchTab('home', this)">
+        <button class="nav-btn active" data-target="home">
             <span>🏠</span> الرئيسية
         </button>
-        <button class="nav-btn" id="navSearchBtn" onclick="window.switchTab('search', this)">
+        <button class="nav-btn" data-target="search">
             <span>🔍</span> بحث
         </button>
-        <button class="nav-btn" id="navCartBtn" onclick="window.switchTab('cart', this)">
+        <button class="nav-btn" data-target="cart">
             <span>🛒</span> السلة
         </button>
-        <button class="nav-btn" id="navAccountBtn" onclick="window.switchTab('account', this)">
+        <button class="nav-btn" data-target="account">
             <span>👤</span> حسابي
         </button>
-        <button class="nav-btn" id="navAdminBtn" style="display: none; color: #38bdf8;" onclick="window.switchTab('admin-dashboard', this)">
+        <button class="nav-btn" id="navAdminBtn" style="display: none; color: #38bdf8;" data-target="admin-dashboard">
             <span>⚙️</span> الإدارة
         </button>
     </div>
 
-    <!-- استدعاء وحدات فايربيس ومنطق الموقع -->
+    <!-- سكريبت التشغيل -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.analytics.js";
@@ -192,34 +197,44 @@
         let stats = JSON.parse(localStorage.getItem("store_stats")) || { visitors: 1, orders: 3 };
         let currentCartItem = "";
 
-        // تعريف الدوال في النطاق العام (window) لتعمل مع الأزرار بسلاسة
+        // نظام التنقل الحديث والآمن (EventListener) لجميع الأزرار التي تستخدم خاصية data-target
+        document.addEventListener("click", function(event) {
+            const btn = event.target.closest("[data-target]");
+            if (!btn) return;
+            
+            const targetId = btn.getAttribute("data-target");
+            
+            // إخفاء كل الأقسام
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            
+            // إظهار القسم المستهدف
+            const targetSec = document.getElementById(targetId);
+            if (targetSec) targetSec.classList.add('active');
+            
+            // تحديث حالة الأزرار في الشريط السفلي إذا كان الزر تابعاً له
+            if (btn.classList.contains('nav-btn')) {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            
+            window.scrollTo(0, 0);
+        });
+
         window.loginWithGoogle = function() {
-            signInWithPopup(auth, provider)
-                .catch((error) => {
-                    alert("خطأ في تسجيل الدخول: " + error.message);
-                });
+            signInWithPopup(auth, provider).catch((error) => {
+                alert("خطأ في تسجيل الدخول: " + error.message);
+            });
         };
 
         window.logoutUser = function() {
             signOut(auth).then(() => {
-                window.switchTab('home', document.getElementById('navHomeBtn'));
-            }).catch((error) => {
-                console.error("خطأ أثناء تسجيل الخروج", error);
+                // العودة للرئيسية عند تسجيل الخروج
+                document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+                document.getElementById('home').classList.add('active');
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('[data-target="home"]').classList.add('active');
             });
         };
-
-        window.switchTab = function(tabId, element) {
-            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
-            const targetSec = document.getElementById(tabId);
-            if(targetSec) targetSec.classList.add('active');
-            
-            if (element) {
-                element.classList.add('active');
-            }
-            window.scrollTo(0, 0);
-        }
 
         onAuthStateChanged(auth, (user) => {
             const authSectionBox = document.getElementById("authSectionBox");
@@ -259,10 +274,10 @@
                 localStorage.setItem("store_stats", JSON.stringify(stats));
                 sessionStorage.setItem("visited", "true");
             }
-            window.renderClientServices();
-            window.renderAdminServices();
-            window.renderLogs();
-            window.updateStats();
+            renderClientServices();
+            renderAdminServices();
+            renderLogs();
+            updateStats();
         }
 
         window.renderClientServices = function() {
@@ -291,7 +306,7 @@
 
                 const btn = document.createElement("button");
                 btn.textContent = "اطلب الخدمة";
-                btn.onclick = () => window.addToCart(`${s.name} (${s.price})`);
+                btn.onclick = () => addToCart(`${s.name} (${s.price})`);
 
                 card.appendChild(infoDiv);
                 card.appendChild(btn);
@@ -304,7 +319,12 @@
             document.getElementById("cartDisplay").innerHTML = `• المنتج المختار:<br><strong style="color:#fff;">${serviceName}</strong>`;
             document.getElementById("checkoutArea").style.display = "block";
             alert("تمت إضافة المنتج إلى السلة!");
-            window.switchTab('cart', document.getElementById('navCartBtn'));
+            
+            // الانتقال الفوري لقسم السلة برمجياً
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('cart').classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-target="cart"]').classList.add('active');
         }
 
         window.submitOrder = function() {
@@ -333,7 +353,7 @@
                     alert("تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً.");
                     stats.orders++;
                     localStorage.setItem("store_stats", JSON.stringify(stats));
-                    window.updateStats();
+                    updateStats();
                     currentCartItem = "";
                     document.getElementById("cartDisplay").innerText = "لا يوجد منتجات في سلة المشتريات الخاصة بك";
                     document.getElementById("checkoutArea").style.display = "none";
@@ -367,11 +387,11 @@
             document.getElementById("serviceNameInput").value = "";
             document.getElementById("servicePriceInput").value = "";
             
-            window.renderClientServices();
-            window.renderAdminServices();
-            window.updateStats();
+            renderClientServices();
+            renderAdminServices();
+            updateStats();
             
-            window.addLog(currentUser.email, `أضاف خدمة جديدة: ${name} (${price})`);
+            addLog(currentUser.email, `أضاف خدمة جديدة: ${name} (${price})`);
             alert("تمت إضافة الخدمة بنجاح!");
         }
 
@@ -385,11 +405,11 @@
             const deleted = services.splice(index, 1);
             localStorage.setItem("store_services", JSON.stringify(services));
             
-            window.renderClientServices();
-            window.renderAdminServices();
-            window.updateStats();
+            renderClientServices();
+            renderAdminServices();
+            updateStats();
             
-            window.addLog(currentUser.email, `حذف الخدمة: ${deleted[0].name}`);
+            addLog(currentUser.email, `حذف الخدمة: ${deleted[0].name}`);
         }
 
         window.renderAdminServices = function() {
@@ -414,7 +434,7 @@
                 const btn = document.createElement("button");
                 btn.style.cssText = "padding: 4px 10px; font-size: 12px; border-color: #ff4444; color: #ff4444;";
                 btn.textContent = "حذف";
-                btn.onclick = () => window.deleteService(index);
+                btn.onclick = () => deleteService(index);
 
                 row.appendChild(span);
                 row.appendChild(btn);
@@ -437,7 +457,7 @@
             logs.unshift(`[${timeTag}] (${email}): ${action}`);
             if (logs.length > 50) logs.pop();
             localStorage.setItem("admin_logs", JSON.stringify(logs));
-            window.renderLogs();
+            renderLogs();
         }
 
         window.renderLogs = function() {
@@ -454,8 +474,8 @@
                 return;
             }
             localStorage.removeItem("admin_logs");
-            window.renderLogs();
-            window.addLog(currentUser.email, `قام بمسح سجل النشاطات`);
+            renderLogs();
+            addLog(currentUser.email, `قام بمسح سجل النشاطات`);
         }
     </script>
 </body>
